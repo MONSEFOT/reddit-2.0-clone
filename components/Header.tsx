@@ -63,7 +63,7 @@ const Header = () => {
             {session ? (
                 // <button onClick={() => signOut()} className='border-[1px] border-blue-600 text-blue-600 font-bold rounded-2xl w-24 px-2 py-1'>Sign Out</button>
                 <div onClick={onDropMenu} className='relative flex items-center p-1 border-[1px] border-transparent hover:cursor-pointer hover:border-gray-500'>
-                    <Avatar/>
+                    <Avatar seed={session?.user?.name!}/>
                     <div className='hidden lg:block'>
                         <p className='font-bold text-sm truncate'>{session?.user?.name}</p>
                         <button onClick={() => signOut()} className='font-bold text-sm text-blue-600 underline underline-offset-2'>sign out</button>

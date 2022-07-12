@@ -16,10 +16,17 @@ type Comment {
 
 type Post {
   body: String
-  commentList: [Comment] @materializer(query: "getCommentUsingPost_id")
+  comments: [Comment] @materializer(query: "getCommentUsingPost_id")
   created_at: DateTime
   id: ID!
   image: String
+  votes:[Vote] 
+    @materializer(
+      query: "getVoteListByPostId"
+      arguments: [
+        {name: "post_id", field: "id"}
+      ]
+    )
   subreddit: Subreddit
     @materializer(
       query: "getSubreddit"
@@ -44,7 +51,8 @@ type Vote {
   created_at: DateTime
   id: ID!
   upvote: Boolean
-  username: String
+  username: String,
+  post_id: ID
 }
 
 """
@@ -69,7 +77,9 @@ type Query {
     @dbquery(
       type: "postgresql"
       schema: "public"
-      table: "post"
+      query: """
+        SELECT * FROM "post" order by "post"."created_at" desc
+      """
       configuration: "postgresql_config"
     )
   getPost(id: ID!): Post
@@ -83,7 +93,7 @@ type Query {
     @dbquery(
       type: "postgresql"
       query: """
-      SELECT T."created_at", T."id", T."post_id", T."text", T."username"
+        SELECT T."created_at", T."id", T."post_id", T."text", T."username"
         FROM "public"."comment" T
         WHERE T."post_id" = $1
       """
@@ -127,6 +137,14 @@ type Query {
       type: "postgresql"
       schema: "public"
       table: "vote"
+      configuration: "postgresql_config"
+    )
+  getVoteListByPostId(post_id: ID!): [Vote]
+    @dbquery(
+      type: "postgresql"
+      query: """
+      SELECT * FROM "vote" WHERE "post_id" = $1
+      """
       configuration: "postgresql_config"
     )
   getVote(id: ID!): Vote

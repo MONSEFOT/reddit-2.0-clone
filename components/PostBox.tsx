@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { ApolloQueryResult, useMutation } from '@apollo/client';
 import { ADD_POST, ADD_SUBREDDIT } from '../graphql/mutations';
 import { client } from '../utils/apollo-client';
-import { GET_SUBRDDIT_BY_TOPIC } from '../graphql/queries';
+import { GET_SUBRDDIT_BY_TOPIC , GET_POST_LIST } from '../graphql/queries';
 import toast from 'react-hot-toast';
 
 interface FormData {
@@ -17,7 +17,12 @@ interface FormData {
 }
 export default function PostBox() {
     const { data: session } = useSession();
-    const [addPost] = useMutation(ADD_POST);
+    const [addPost] = useMutation(ADD_POST , {
+        refetchQueries:[
+            GET_POST_LIST,
+            "getPostList"
+        ],
+    });
     const [addSubreddit] = useMutation(ADD_SUBREDDIT);
 
     const [imageBoxIsOpen, setImageBoxIsOpen] = useState<boolean>(false);
@@ -62,11 +67,10 @@ export default function PostBox() {
                 });
 
                 //create the post
-                const newPost = await createPost(formData , newSubreddit.id);
+                await createPost(formData , newSubreddit.id);
             } else {
                 //use the existing subreddit
-                const newPost = await createPost(formData , getSubredditListByTopic[0].id);
-                console.log(newPost);
+                await createPost(formData , getSubredditListByTopic[0].id);
             }
             
 
@@ -88,7 +92,7 @@ export default function PostBox() {
         <form onSubmit={onSubmit} className='px-2 p-2 bg-white border-gray-400 border-[0.3px] rounded-md'>
             <div className='p-2 flex items-center space-x-4 w-full'>
                 {/* Avarate */}
-                <Avatar />
+                <Avatar seed={session?.user?.name!}/>
                 <input {...register('postTitle', { required: true })} type="text" className='flex-1 py-2 px-4 text-sm bg-gray-100 outline-none border-[1px] border-gray-200 rounded-sm hover:border-blue-600 hover:bg-white' placeholder={session ? 'Create a post' : 'Sign in to post'} disabled={!session} />
                 <div onClick={() => setImageBoxIsOpen(!imageBoxIsOpen)} className='p-1 hover:bg-gray-100'><PhotographIcon className={`w-7 h-7 stroke-1 ${imageBoxIsOpen ? 'text-blue-600' : 'text-gray-700'}`} /></div>
                 <div className='p-1 hover:bg-gray-100'><LinkIcon className='w-7 h-7 text-gray-700 stroke-1' /></div>
